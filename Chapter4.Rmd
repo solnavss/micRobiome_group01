@@ -1,0 +1,660 @@
+---
+title: "Chapter4"
+author: "CamilaSilva"
+date: "8/19/2022"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE)
+```
+
+## Usuarios servidor remoto
+http://132.248.196.38:8787/
+User: alumno# (1,2,....,15)
+Pasword:  alumno#@CCM21 (1,2,....,15)
+
+## R para Análisis Científicos Reproducibles
+https://swcarpentry.github.io/r-novice-gapminder-es/
+
+# Introduccion a R y RStudio
+
+R es un lenguaje de programación y ambiente de computación estadistica y graficas; libre, de codigo abierto y de alto nivel.
+
+Uno de los puntos fuertes de R es la facilidad con la que se pueden producir gráficos con calidad de publicación bien diseñados, incluidos símbolos matemáticos y fórmulas. 
+
+Proporciona una amplia variedad de métodos estadísticos y gráficos. Además es altamente extensible ("packages"). 
+
+RStudio es un ambiente de R que incluye una consola, un editor con syntax-highlighting que admite la ejecución directa de código, así como herramientas para graficar, almacenar el historial, depurar código y gestionar el espacio de trabajo. 
+
+Con R-Studio esposible desarrollar docuemntos HTML con la opcion de Markdown. Tambien sepueden exportar graficas en diferentes formatos, segun la necesidad.
+
+R trae varias funciones en paquetes, pero tambien es posible extender su utilidad con la instalacion de diferentes paquetes,segun nuestra necesidad.
+
+Los paquetes se pueden instalarcon codigo(como se mostrara mas adelante) o haciendo 'click' en 'packages','install' y buscando el paquete por su nombre. 
+
+Primero vamos a instalar el paquete 'ALDEx2', el cual es util para datos estandar de secuencias de ARN. 
+
+```{r} 
+#install.packages("ALDEx2")  # este paquete no esta disponible para la version de R
+#para esta instalacion usamos la instalacion de bio conductor, ya que todos trabajaremos en el servidor, esta previamente instalado en todos los 'alumnos'
+#BiocManager::install() 
+#porlo tanto solo es necesario llamar a la libreria
+library(ALDEx2)
+```
+Si queremos ver una muestra de los paquetes instalados,
+```{r}
+installed.packages()[1:5,] # que paquetes estan instalados
+```
+Para ver si fue posible instalar el paquete que necesitamos, podemos buscarlo:
+```{r}
+a<-installed.packages()
+packages<-a[,1]
+is.element("ALDEx2",packages) # está este paquete en el elemento 'packages´
+```
+
+### Establecer directorio de trabajo en R
+
+'Working directory' es en donde se tendran los datos sin procesar, los codigos de R y las salidas de un trabajo especifico.
+```{r}
+getwd() #para ver en que directorio estamos (path)
+setwd("/home/betterlab/GIT/Intro_R") #crea un directorio especifico para trabajar,si queremos cambiar de lugar de trabajo 
+getwd()
+```
+
+### Análisis de datos a través de RStudio
+
+Para cargar datos externos, primero debemos tener un archivo con datos, o descargarlos; debemos tener el documento en el lugar de trabajo, o escribir el 'path' completo del documento.
+
+Una manera de visualizacion de estos datos es con graficas, como la funcion 'boxplot()' que ya vienen predeterminadas en R. Para crear otros tipos de graficas, o de mayor calidad usaremos el paquete 'ggplot2'
+```{r}
+data <- read.csv("data/hsb2demo.csv")
+boxplot(write~female,data,main="High School Students Data",slab="Gender",ylab="writing scoreby gender")
+```
+### Importar y exportar datos 
+
+Podemos importar y exportar datos, los formatos más usados para importar datos en estudios microbianos son: archivos de excel separados por coma (.CSV)  y archivos generados por herramientas bioinformaticas y datos web variables.
+
+Para la lectura de estos archivos en R, podemos usar:
+```{r}
+#tab0 <- read.table("data/hsb2demo.csv",header=TRUE,row.names=1,sep=",")
+#tab0
+```
+
+la funcion 'read.table' tiene varios parametros, donde primero ponemos nuestro archivo, luego le indicamos que tiene 'cabeza' que indica que laprimera entrada del archivo se interpreta comolos nombres de las variables,l uego tomamos la primera columna sedebe interpretar como los nombres de las filas y por ultimo indica como estan separadas las columnas del archivo (las mas conocidas ',' '/t')
+
+```{r}
+tab1 <- read.table("data/hsb2demo.csv",header=TRUE,row.names=1,sep="\t")
+tab1
+```
+
+Tambien es posible tomar datos directamente de una paguina web.
+```{r}
+raw <-"https://raw.githubusercontent.com/swcarpentry/r-novice-gapminder/gh-pages/_episodes_rmd/data/gapminder_data.csv"
+tab2 <- read.table(raw,sep='\t',header=TRUE,row.names=1,check.names=FALSE,stringsAsFactors=FALSE)
+tab2
+```
+
+La función 'read.delim()' espera que la tabla de entrada sea texto sin formato con celdas separadas o delimitadas por tabuladores.
+```{r}
+tab3 <- read.delim("data/hsb2demo.csv", header=T, row.names=1) 
+tab3
+```
+
+Tambien es posible cargar directamente archivos de formato '.csv', ya que es uno de los mas usados.
+```{r}
+tab4 <- read.csv('data/hsb2demo.csv',head=T,row.names=1,sep=',',dec='.')
+
+tab5 <- read.csv2('data/hsb2demo.csv',head=T,row.names=1,sep =';',dec=',')
+```
+
+### Paquetes gdata y XLConnect
+
+Los paquetes 'gdata' y 'XLConnect' nos ayudan con la lectura de archivos '.xlsx' 
+```{r}
+#install.packages("gdata") # este paquete nos ayuda con la lectura de .xls directamente.
+library(gdata)
+```
+tab6 <- read.xls("table.xlsx",sheet=1,header=TRUE)
+tab7 <- read.xls("table.xlsx",sheet=1,perl="C:/Perl64/bin/perl.exe")
+```{r}
+#install.packages ("XLConnect") # este paquete sirve para manipular archivos de excel en windows.
+library (XLConnect)
+```
+tab8 <- readWorksheetFromFile(ﬁle='table.xlsx',sheet=1,header=T,rownames=1)
+
+La funcion 'write.table' puede escribir un archivo separado por comas o por tabulacion, legible por Excel.
+
+write.table(hsb,ﬁle="data/hsb2demo.csv",quote=FALSE,row.names=FALSE,sep="\t")
+write.table(hsb,ﬁle="data/hsb2demo.txt",quote=FALSE,col.names=TRUE,sep=",")
+
+
+### Manipulación básica de datos
+
+En analisis de datos tenemos unos obgetos llamados'DataFrame' los cuales contienen los datos y una esturcura con informacion sobre ellos.
+
+R trae unos datos de prueba predeterminados para poder 'jugar con ellos' sin la necesidad de descargarlos o tener archivos de datos.
+```{r}
+data()
+attach(iris)
+head(iris)
+```
+
+Data frames (objetos de dos dimensiones): pueden tener valores numeric, character o logical. Dentro de la columna, todos los elementos tienen el mismo tipo de dato. Entre las columnas pueden tener distintos tipos de datos.
+
+Nosotros podemos crear DataFrame con datos ya existentes.
+```{r}
+#crear data frame usando indices de columna
+df <- iris[,c(1,2,3)]
+head(df)
+```
+
+```{r}
+# crear data frame usando indices de columna con secuencias
+df <- iris[,c(1:2,4:5)]
+head(df)
+```
+
+```{r}
+# crear data frame usando subset() e indices de columnas
+df<- subset(iris, select=c(1,2, 4:5))
+head(df)
+```
+
+```{r}
+# crear data frame usando subset() e nombres de columnas
+df <- subset(iris, select=c("Sepal.Width","Petal.Length", "Petal.Width"))
+head(df)
+```
+
+```{r}
+# crear data frame por seleccion de nombres de columnas
+df <- iris[,c("Sepal.Width","Petal.Length","Petal.Width")]
+head(df)
+```
+
+```{r}
+# crear data frame usando dataframe()
+df <- data.frame(iris$Sepal.Width,iris$Petal.Length,iris$Petal.Width)
+head(df)
+```
+
+```{r}
+# crear data frame usando c() manualmente
+Sepal.Width = c(3.5, 3.0, 3.2, 3.1,3.6,3.9)
+Petal.Length = c(1.4,1.4,1.3,1.5,1.4,1.7)
+Petal.Width = c(0.2,0.2,0.2,0.2,0.2,0.4)
+df = data.frame(Sepal.Width,Petal.Length,Petal.Width)
+df
+```
+
+### Operaciones Basicas
+
+```{r}
+head(iris) #nos muestra una pequeña parte de los datos
+```
+```{r}
+attributes(iris) #imprime los nombres de las filas y columnas,y la clase de los datos
+```
+```{r}
+class(iris) #imprime la clase de los datos
+```
+
+```{r}
+dim(iris) #imprime la dimencion del dataframe
+```
+
+```{r}
+nrow(iris) #numero de filas
+ncol(iris) #numero de columnas
+```
+
+```{r}
+length(iris[,"Species"])  #imprime la longitud del vector dado, en este caso es una columna de nuestro dataframe
+```
+
+```{r}
+colnames(iris) #nombre de las columnas
+rownames(iris) #nombre de las filas
+```
+
+```{r}
+print(iris)
+```
+
+Si queremos usar o visualizar solo una columna,podemos volver esa columna un vector con nombre propio
+```{r}
+Species <- iris[,"Species"]
+Species
+```
+
+Podemos acceder solo a un valor,
+```{r}
+iris[1,3] #se puede acceder por posicion
+```
+```{r}
+iris["1","Petal.Length"] #o por nombre de fila y columna
+```
+
+```{r}
+tab = read.csv("data/hsb2demo.csv",row.names=1,check.names=FALSE) 
+sum(tab == 0) # podemos contar cuantos elementos del archivo son cero 
+```
+
+```{r}
+sum(tab != 0) #y cuantos son diferentes de cero
+```
+
+Para realizar diferentes graficas, y dividir nuestro espacio de visualizacion, podemos usar 'layout()'
+```{r}
+# layout(matrix, widths=w; heights=h)
+# diseño(matriz, ancho=w; alto=h)
+ng <- layout(matrix(c(1,3,2,3),2,2, byrow=TRUE), widths=c(5,2),height=c(3,4))
+layout.show(ng)
+```
+
+### Estadisticas simples
+
+La funcion 'summary()'nos genera datos estadisticos basicos de un conjunto de datos dado. Como por ejemplo: el minimo, el maximo,la media, la mediana etc...
+```{r}
+summary(iris)
+```
+
+El comando 'apply()' nos permite aplicar una función a través de una matriz, array o data frame.
+```{r}
+iris_1 <- (iris[,-5])
+head(apply(iris_1, 1, mean))
+```
+Esta funcion tiene importantes aplicaciones en datos del microbioma.
+```{r}
+apply(iris_1, 1, mean)
+apply(iris_1, 2, mean,na.rm = TRUE)
+```
+
+```{r}
+#apply(DataFrame, dimension = Son identificadas con números, 1 son renglones y 2 son colummnas,funcion que se va aplicar a los datos)
+tab_perc <- apply(tab, 2, function(x){x/sum(x)})
+tab_perc
+```
+
+```{r}
+tab_perc <- apply(tab[,1:ncol(tab)-1], 2, function(x){x/sum(x)})
+```
+
+```{r}
+tab_p1 <- tab[apply(tab_perc, 1, max)>0.01,]
+```
+
+```{r}
+tab_p2 <- tab[apply(tab_perc, 1, min)>0.01,]
+head(tab_p2)
+```
+
+```{r}
+iris_t <-t(iris) #toma la traspuesta del dataframe
+iris_t[1:5,1:6]
+```
+Aplicamos las dos funciones al dataframe iris y creamos un nuevo dataframe
+```{r}
+# ordenar el dataframe
+iris_2 <- (iris[,-c(3:5)])
+sorted <- sort(iris_2$Sepal.Length) 
+#sort() y order(), ordenan(Sepal.Length) de forma ascendente
+ordered <- order(iris_2$Sepal.Length)
+new_iris<- data.frame(iris_2,sorted,ordered)
+head(new_iris)
+```
+
+```{r}
+rev_iris <- rev(sort(iris_2$Sepal.Length))
+# ordena de forma descendente
+head(rev_iris)
+```
+
+```{r}
+head(iris[order(Sepal.Length),])
+```
+
+```{r}
+head(iris[order(iris[,'Sepal.Length']),])
+```
+
+# Introduccion al paquete dplyr
+
+https://swcarpentry.github.io/r-novice-gapminder-es/13-dplyr/
+
+El paquete dplyr proporciona un conjunto de funciones extremadamente útiles para manipular data frames y así reducir el número de repeticiones, la probabilidad de cometer errores y el número de caracteres que hay que escribir. 
+
+```{r}
+#instaler y cargar el paquete
+#install.packages("dplyr")
+library("dplyr")
+tab <- read.csv('data/hsb2demo.csv')
+head(tab)
+```
+Veremos varias de sus funciones, así como a usar los pipes (%>%) para combinarlas
+
+select()
+filter()
+group_by()
+summarize()
+mutate()
+
+El operador de (%>%) es muy útil cuando combinamos varias funciones, en lugar de leer funciones de adentro hacia afuera, las lee de izquierda a derecha.
+
+```{r}
+tab %>% select(id,write) %>% head
+#esta funcion guardará sólo las variables que seleccionemos.
+```
+
+Vamos a selecionar columnas con el comando select() del dataframe 'tab', estamos selecionando las variables id, read, write, math.
+```{r}
+head(select(tab, id, read, write, math))
+```
+Ahora selecionamos de la tabla 'tab' usando ´select´ desde la columna ´read´a ´socst´, seleccionandoel rango completo entre estas dos columnas.
+```{r}
+head(select(tab, read:socst))
+```
+Tambien podemos selecionar de la tabla 'tab' todas las columnas menos la columna ´female´
+```{r}
+head(select(tab, - female))
+```
+De forma similar podemos selecionarlas, desde que columna a que columna no queremos que aparezcan
+```{r}
+head(select(tab, - (female:prog )))
+```
+También podemos selecionar columnas basados en escriterios especificos usando 'select()'. Estos criterios pueden ser, starts_with(), ends_with(), matches(), contains(), and one_of (). 
+
+Queremos seleccionar todas las columnas que comienzan con el caracter  "s"
+```{r}
+head(select(tab, starts_with("s")))
+```
+
+
+El comando 'filter()' nos permite seleccionar filas de un dataframe. 
+```{r}
+#filtra las fila de estudiantes con puntaje de lectura mayor o igual a 70.
+filter(tab, read >= 70)
+```
+```{r}
+#Filtra las filas de estudiantes con un puntaje de lectura y matematica mayor o igual a 70
+filter(tab, read >= 70, math >= 70)
+```
+La funcion 'arrange()' trabaja de manera similar a 'filter()' solo que este en lugar de selecionar las filas las ordena.
+```{r}
+#ordena por read y luego por write
+head(arrange(tab, read, write))
+```
+
+```{r}
+#Usamos desc() para odenar una columna en orden decreciente
+head(arrange(tab, desc(read)))
+```
+
+```{r}
+head(arrange(tab, desc(female),read)) #ejemplo
+```
+
+The pipe operator: '%>%' lo podemos usar juto a 'arrange()'. este operados nos ayuda a ejecutar todas las ordenes concatenadas,en orden.
+```{r}
+tab %>% arrange(female) %>% head
+```
+
+```{r}
+#Primero selecciona las columnas id, gender, read de tab, luego ordena las filas por gender y luego por read y finalmente regresa el head de dataframe resultante
+tab%>%select(id, female, read) %>% arrange(female, read) %>%  head
+```
+
+```{r}
+# Filtramos las filas por 'read' con un puntaje mayor o igual a 70
+tab %>% select(id, female, read) %>% arrange(female, read) %>% filter(read >= 70)
+```
+
+```{r}
+#realizamos los mismos pasos anteriores, pero con orden descendente
+tab %>% select(id, female, read) %>% arrange(female, desc(read)) %>% filter(read >= 70)
+```
+
+La funcion 'mutate()' crea nuevas columnas que sean funciones de las columnas ya existentes.
+```{r}
+#Calculamos los puntajes promedio de lectura y escritura
+head(mutate(tab, avg_read = sum(read)/n()))
+```
+
+podemos crear nuevas columnas usando 'mutate()' y operador '%>%'
+```{r}
+tab %>% mutate(avg_read = sum(read/n())) %>%  head
+```
+
+
+'summarise()' funciona como 'summary()',ya que con ella podemos crear estadísticas de resumen para una columna dada en el dataframe, combinando otras estadísticas de resumen, como mean(), sd(), min(), max(), median(), sum(), n().
+
+```{r}
+#contrae un dataframe en una sola fila.
+summarise(tab, avg_read = mean(read, na.rm = TRUE))
+```
+
+```{r}
+tab %>% summarise(avg_read = mean(read),min_read = min(read),max_read = max(read),n = n())
+```
+
+Esta función divide un conjunto de datos en grupos específicos de filas (agrupa). Divide el dataframe por alguna variable, aplica una función a los dataframe individuales y luego combina la salida. 
+```{r}
+#primero agruparemos por genero y luego muestra las estadisticas obtenidas (media, minimo y maximo)
+by_gender <- group_by(tab, female)
+read_by_gender <- summarise(by_gender,
+                            n = n(), 
+                            avg_read = mean(read, na.rm = TRUE),
+                            min_read = min(read,na.rm = TRUE),
+                            max_read = max(read,na.rm = TRUE))
+read_by_gender
+```
+
+
+# Introduccion al paquete ggplot2
+
+https://swcarpentry.github.io/r-novice-gapminder-es/08-plot-ggplot2/index.html 
+
+'ggplot2' es un paquete de R para crear gráficos elegantes para el análisis de datos, Implementada por Hardley Wickham.
+
+Usa el paquete (grid) creado por Paul Murell para facilitar la generación de gráficos completos.
+Está basado en "The Grammar of Graphics" de Leland Wilkinson (2000).
+Propone una serie de ideas novedosas sobre cómo se debe generar un gráfico.
+Las ideas centrales son:
+(1) Todos los gráficos pueden generarse mediante un lenguaje regular, con una sintaxis determinada.
+(2) Es posible construir una serie de reglas comunes, conocidas y regulares para crear representaciones visuales de datos de interés estadístico.
+(3) Es un marco que sigue un enfoque de capas para describir y construir visualizaciones o gráficas de manera estructurada.
+
+Capas o elementos de un gráfico en ggplot2
+ - Datos(data) ->  datos a graficar, 'ggplot2' solo acepta un tipo de datos "data.frames"
+ - Estéticas (aes(x,y)) -> son los datos de los ejes
+ - Geometrías (geom) -> es el tipo grafica, ya sea en puntos, o lineas continuas (esto va por capas y es posible agregar varias capas de tipos de graficas)
+ - Temas -> permiten hacer modificaciones a los aspectos estéticos del gráfico, incluye: ejes, etiquetas, colores de fondo, tamaño de los márgenes, paletas de colores, etc.
+ - Facetas -> Las facetas nos permiten hacer comparaciones entre las diferentes variables.
+ - Estadísticas
+ - Coordenadas
+ 
+```{r}
+library(ggplot2)
+```
+
+Podemos ver que una sola capa especifica los datos, el mapeo, la geom, la estadística y la posición, las dos escalas de posición continuas y un sistema de coordenadas cartesianas.
+```{r}
+ggplot() +
+ layer(
+  data = iris, 
+  mapping = aes(x = Sepal.Width, y = Sepal.Length),
+  geom = "point", 
+  stat = "identity", 
+  position = "identity" ) +
+ scale_y_continuous() +
+ scale_x_continuous() +
+ coord_cartesian()
+```
+ggplot es una función más compleja que nos va a permitir explorar más a fondo los datos. Se pueden agregar varias capas, es importante tener en cuenta que cada capa se dibuja sobre la capa anterior.
+```{r}
+ggplot(iris, aes(Sepal.Width, Sepal.Length)) + geom_point()
+```
+
+```{r}
+ggplot(iris, aes(Sepal.Width, Sepal.Length)) +
+ geom_point() +
+ stat_smooth(method = lm) +
+ scale_x_log10() +  
+ scale_y_log10() #podemos cambiar la escala de unidades en los ejes, usando las funciones de escala (scale_x_log10()) o (scale_y_log10())
+```
+
+```{r}
+ggplot() + 
+  layer(
+   data = iris, 
+   mapping = aes(x = Sepal.Width, y = Sepal.Length),
+   geom = "smooth", 
+   position = "identity",
+   stat = "smooth", 
+   ) + scale_y_log10() + scale_x_log10() + coord_cartesian()
+
+```
+
+'qplot()' es una función que permite ver los datos de manera rápida, crea un gráfico completo con los datos, geometría y mapeos. Proporciona muchos valores por defecto.
+```{r}
+qplot(Sepal.Width, Sepal.Length, 
+      data = iris,
+      geom = c("point", "smooth"),
+      method = "lm", 
+      log = "xy")
+```
+## Paso 1
+La primera capa para una grafica con 'ggplot' es elobgeto en donde seespera dibujar.
+```{r}
+#library(ggplot2)
+p <- ggplot(iris, aes(x=Sepal.Width, y=Sepal.Length))
+# Sepal.Width y Sepal.Length son columnas en el dataframe iris
+p
+```
+
+Podemos acceder a los detalles de la información usando la función de resumen () para realizar un seguimiento de qué datos se usaron exactamente y cómo se mapearon las variables.
+```{r}
+summary(p)
+```
+
+## Paso 2
+Para dibujar un diagrama de dispersión, agregamos puntos usando una capa geom llamada geom_point() al objeto de la gráfica p.
+```{r}
+p1 <- p + geom_point()
+p1
+```
+
+```{r}
+summary(p1)
+```
+
+```{r}
+ggplot(iris, aes(x=Sepal.Width, y=Sepal.Length)) + geom_point()
+```
+## Paso 3
+Para dibujar un diagrama de dispersión con una curva suave, agregamos una capa de geoma adicional llamada geom_smooth() al objeto de trazado anterior.
+```{r}
+p2 <- p1 + geom_smooth(method="lm")
+p2
+```
+
+```{r}
+summary(p2)
+```
+
+```{r}
+p1 + geom_smooth(method="lm", se = FALSE)
+```
+
+Podemos hacercambios en la estetica, escala y geometria delas graficas.
+
+```{r}
+p3 <- ggplot(iris, aes(x=Sepal.Width, y=Sepal.Length)) +
+ #Add scatterplot geom (layer1)
+  geom_point(col="blue", size=3) +
+ #Add smoothing geom (layer2)
+  geom_smooth(method="lm",col="red",size=2)
+p3
+```
+
+```{r}
+p4 <- ggplot(iris, aes(x=Sepal.Width, y=Sepal.Length)) +
+  #Add scatterplot geom (layer1)
+  geom_point(aes(col=Species), size=3) +
+  #Add smoothing geom (layer2)
+  geom_smooth(method="lm",col="red",size=2)
+p4
+```
+
+Podemos tambien cambiar los limites de los ejes
+```{r}
+p5 <- p4 + coord_cartesian(xlim=c(2.2,4.2), ylim=c(4, 7)) # zooms in
+plot(p5)
+```
+
+Podemos agregar un titulo y labels al grafico.
+```{r}
+p6 <- p5 + labs(title="Sepal width vs sepal length",
+                subtitle="Using iris dataset", 
+                y="Length of Sepal", 
+                x="Width of Sepal")
+print(p6)#Or plot(p6)
+```
+```{r}
+plot(p6)
+```
+
+Podemos hacer la creacion del grafico en total
+```{r}
+#library(ggplot2)
+ggplot(iris, aes(x=Sepal.Width, y=Sepal.Length)) +
+  geom_point(aes(col=Species), size=3) +
+  geom_smooth(method="lm",col="red",size=2) +
+  coord_cartesian(xlim=c(2.2,4.2), ylim=c(4, 7)) +
+  labs(title="Sepal width vs sepal length", 
+  subtitle="Using iris dataset",
+  y="Length of Sepal", 
+  x="Width of Sepal")
+```
+
+```{r}
+ggplot(iris, aes(x=Sepal.Width, y=Sepal.Length)) +
+  geom_point(aes(col=Species), size=3) +
+  geom_smooth(method="lm",col="red",size=2) +
+  coord_cartesian(xlim=c(2.2,4.2), ylim=c(4, 7)) +
+  # Add Facet Grid
+  facet_grid(Species ~.)
+```
+
+```{r}
+ggplot(iris, aes(x=Sepal.Width, y=Sepal.Length)) +
+ geom_point(aes(col=Species), size=3) +
+ geom_smooth(method="lm",col="red",size=2) +
+ coord_cartesian(xlim=c(2.2,4.2), ylim=c(4, 7)) +
+ # Add Facet Grid
+ facet_grid(.~ Species)
+```
+
+```{r}
+ggplot(iris, aes(x=Sepal.Width, y=Sepal.Length)) +
+ geom_point(aes(col=Species), size=3) +
+ geom_smooth(method="lm",col="red",size=2) +
+ coord_cartesian(xlim=c(2.2,4.2), ylim=c(4, 7)) +
+ # Add Facet Grid
+ facet_grid(.~ Species, margin=TRUE)
+```
+
+
+
+```{r}
+ggplot(iris, aes(x=Sepal.Width, y=Sepal.Length)) +
+ geom_point(aes(col=Species), size=3) +
+ geom_smooth(method="lm",col="red",size=2) +
+ coord_cartesian(xlim=c(2.2,4.2), ylim=c(4, 7)) +
+ #Add Facet Wrap
+ facet_wrap(~ Species, nrow=2)
+```
